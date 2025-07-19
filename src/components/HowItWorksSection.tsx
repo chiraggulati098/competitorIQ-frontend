@@ -55,11 +55,14 @@ export const HowItWorksSection = () => {
                 </CardContent>
               </Card>
 
-              {/* Connector arrow (desktop only) */}
+              {/* Connector dots (desktop only) */}
               {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
-                  <div className="w-8 h-0.5 bg-gradient-to-r from-primary to-accent" />
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-0 h-0 border-l-4 border-l-accent border-y-2 border-y-transparent" />
+                <div className="hidden md:block absolute top-1/2 -right-6 transform -translate-y-1/2 z-10">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-1 h-1 bg-primary/40 rounded-full" />
+                    <div className="w-1 h-1 bg-primary/60 rounded-full" />
+                    <div className="w-1 h-1 bg-primary/80 rounded-full" />
+                  </div>
                 </div>
               )}
             </div>
