@@ -1,12 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { Brain, Menu, X } from "lucide-react";
-import { useState } from "react";
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
+import { useEffect, useState } from "react";
+import { useAuth, SignInButton, UserButton } from "@clerk/clerk-react";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const location = useLocation();
+  const { isSignedIn } = useAuth();
+
+  useEffect(() => {
+    // Let the first render happen quickly; set hydrated after mount
+    setHydrated(true);
+  }, []);
 
   const navItems = [
     { label: "Home", path: "/" },
@@ -30,7 +37,7 @@ export const Navigation = () => {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
               <Link
@@ -45,30 +52,25 @@ export const Navigation = () => {
                 {item.label}
               </Link>
             ))}
-            <SignedOut>
+            {hydrated && isSignedIn ? (
+              <UserButton afterSignOutUrl="/" />
+            ) : (
               <SignInButton mode="modal">
                 <Button variant="outline" size="sm">Login</Button>
               </SignInButton>
-            </SignedOut>
-            <SignedIn>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
+            )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Toggle */}
           <button
             className="md:hidden p-2"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            {isMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
+            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Nav */}
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-border">
             <div className="flex flex-col space-y-3">
@@ -86,14 +88,13 @@ export const Navigation = () => {
                   {item.label}
                 </Link>
               ))}
-              <SignedOut>
+              {hydrated && isSignedIn ? (
+                <UserButton afterSignOutUrl="/" />
+              ) : (
                 <SignInButton mode="modal">
                   <Button variant="outline" size="sm" className="self-start">Login</Button>
                 </SignInButton>
-              </SignedOut>
-              <SignedIn>
-                <UserButton afterSignOutUrl="/" />
-              </SignedIn>
+              )}
             </div>
           </div>
         )}
