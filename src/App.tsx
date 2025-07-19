@@ -14,6 +14,7 @@ import HowItWorks from "./pages/HowItWorks";
 import Summaries from "./pages/Summaries";
 import AddCompetitor from "./pages/AddCompetitor";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -26,8 +27,16 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/summaries" element={<Summaries />} />
-          <Route path="/add" element={<AddCompetitor />} />
+          <Route path="/summaries" element={
+            <ProtectedRoute>
+              <Summaries />
+            </ProtectedRoute>
+          } />
+          <Route path="/add" element={
+            <ProtectedRoute>
+              <AddCompetitor />
+            </ProtectedRoute>
+          } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

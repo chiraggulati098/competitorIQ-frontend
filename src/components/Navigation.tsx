@@ -2,12 +2,22 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { Brain, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useAuth, SignInButton, UserButton } from "@clerk/clerk-react";
+import { useAuth, SignInButton, UserButton, useSignIn } from "@clerk/clerk-react";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const location = useLocation();
+  const signIn = useSignIn();
+  useEffect(() => {
+    if (location.state && location.state.openLogin) {
+      // Programmatically open the sign-in modal by simulating a click on the SignInButton
+      const signInBtn = document.getElementById("sign-in-btn");
+      if (signInBtn) {
+        signInBtn.click();
+      }
+    }
+  }, [location.state]);
   const { isSignedIn } = useAuth();
 
   useEffect(() => {
@@ -56,7 +66,7 @@ export const Navigation = () => {
               <UserButton afterSignOutUrl="/" />
             ) : (
               <SignInButton mode="modal">
-                <Button variant="outline" size="sm">Login</Button>
+                <Button id="sign-in-btn" variant="outline" size="sm">Login</Button>
               </SignInButton>
             )}
           </div>
@@ -92,7 +102,7 @@ export const Navigation = () => {
                 <UserButton afterSignOutUrl="/" />
               ) : (
                 <SignInButton mode="modal">
-                  <Button variant="outline" size="sm" className="self-start">Login</Button>
+                  <Button id="sign-in-btn" variant="outline" size="sm" className="self-start">Login</Button>
                 </SignInButton>
               )}
             </div>
