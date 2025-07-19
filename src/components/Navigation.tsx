@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { Brain, Menu, X } from "lucide-react";
 import { useState } from "react";
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -44,9 +45,14 @@ export const Navigation = () => {
                 {item.label}
               </Link>
             ))}
-            <Button asChild variant="outline" size="sm">
-              <Link to="/login">Login</Link>
-            </Button>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button variant="outline" size="sm">Login</Button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
           </div>
 
           {/* Mobile Menu Button */}
@@ -80,9 +86,14 @@ export const Navigation = () => {
                   {item.label}
                 </Link>
               ))}
-              <Button asChild variant="outline" size="sm" className="self-start">
-                <Link to="/login">Login</Link>
-              </Button>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <Button variant="outline" size="sm" className="self-start">Login</Button>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                <UserButton afterSignOutUrl="/" />
+              </SignedIn>
             </div>
           </div>
         )}
