@@ -9,21 +9,41 @@ export const Navigation = () => {
   const [hydrated, setHydrated] = useState(false);
   const location = useLocation();
   const signIn = useSignIn();
+  const { isSignedIn, getToken } = useAuth();
+
   useEffect(() => {
     if (location.state && location.state.openLogin) {
-      // Programmatically open the sign-in modal by simulating a click on the SignInButton
       const signInBtn = document.getElementById("sign-in-btn");
       if (signInBtn) {
         signInBtn.click();
       }
     }
   }, [location.state]);
-  const { isSignedIn } = useAuth();
 
   useEffect(() => {
-    // Let the first render happen quickly; set hydrated after mount
     setHydrated(true);
   }, []);
+
+  useEffect(() => {
+    const sendJwtToBackend = async () => {
+      if (isSignedIn) {
+        const token = await getToken();
+        if (token) {
+          try {
+            await fetch("http://localhost:8000/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              }
+            });
+          } catch (err) {
+          }
+        }
+      }
+    };
+    sendJwtToBackend();
+  }, [isSignedIn, getToken]);
 
   const navItems = [
     { label: "Home", path: "/" },
@@ -37,7 +57,6 @@ export const Navigation = () => {
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
             <div className="p-2 rounded-lg bg-gradient-primary">
               <Brain className="h-6 w-6 text-white" />
@@ -47,7 +66,6 @@ export const Navigation = () => {
             </span>
           </Link>
 
-          {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
               <Link
@@ -71,7 +89,6 @@ export const Navigation = () => {
             )}
           </div>
 
-          {/* Mobile Menu Toggle */}
           <button
             className="md:hidden p-2"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -80,7 +97,6 @@ export const Navigation = () => {
           </button>
         </div>
 
-        {/* Mobile Nav */}
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-border">
             <div className="flex flex-col space-y-3">
