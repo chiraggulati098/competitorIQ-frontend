@@ -56,6 +56,7 @@ const AddCompetitor = () => {
   const { user } = useUser();
   const [name, setName] = useState("");
   const [homepageContent, setHomepageContent] = useState("");
+  const [scanned, setScanned] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem("competitorAdded") === "1") {
@@ -73,11 +74,11 @@ const AddCompetitor = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ homepage: homepageUrl }),
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Unknown error");
+      let data: any = {};
+      if (res.ok) {
+        data = await res.json();
       }
-      const data = await res.json();
+      // Always set all fields, even if data is empty
       setFields({
         pricing: data.pricing || "",
         blog: data.blog || "",
@@ -86,13 +87,25 @@ const AddCompetitor = () => {
         appstore: data.appstore || "",
         linkedin: data.linkedin || "",
         twitter: data.twitter || "",
-        custom: data.custom || [""]
+        custom: (data.custom && data.custom.length > 0) ? data.custom : [""]
       });
       setHomepageContent(JSON.stringify(data));
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to extract fields", variant: "destructive" });
+      // Still show the form for manual entry
+      setFields({
+        pricing: "",
+        blog: "",
+        releaseNotes: "",
+        playstore: "",
+        appstore: "",
+        linkedin: "",
+        twitter: "",
+        custom: [""]
+      });
     } finally {
       setLoading(false);
+      setScanned(true); // Mark that a scan was attempted
     }
   };
 
@@ -239,7 +252,7 @@ const AddCompetitor = () => {
               </Card>
             </form>
             {/* Show extracted fields if not loading and at least one field is filled */}
-            {!loading && (fields.pricing || fields.blog || fields.releaseNotes || fields.playstore || fields.appstore || fields.linkedin || fields.twitter || (fields.custom && fields.custom.some(f => f))) && (
+            {!loading && scanned && (
               <form className="space-y-6 mt-8" onSubmit={e => { e.preventDefault(); handleSave(); }}>
                 <Card className="bg-gradient-card border-border/50">
                   <CardHeader>
