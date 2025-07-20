@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Globe, DollarSign, MessageSquare, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from '@clerk/clerk-react';
 
 type Competitor = {
   id: string;
@@ -52,6 +53,16 @@ const AddCompetitor = () => {
   // State for saving
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const { user } = useUser();
+  const [name, setName] = useState("");
+  const [homepageContent, setHomepageContent] = useState("");
+
+  useEffect(() => {
+    if (localStorage.getItem("competitorAdded") === "1") {
+      toast({ title: "Competitor added successfully!" });
+      localStorage.removeItem("competitorAdded");
+    }
+  }, []);
 
   // Real crawl function using backend API
   const crawlAndExtractFields = async (homepageUrl: string) => {
@@ -77,6 +88,7 @@ const AddCompetitor = () => {
         twitter: data.twitter || "",
         custom: data.custom || [""]
       });
+      setHomepageContent(JSON.stringify(data));
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to extract fields", variant: "destructive" });
     } finally {
@@ -129,21 +141,53 @@ const AddCompetitor = () => {
   // Save competitor
   const handleSave = async () => {
     setSaving(true);
-    // Simulate save
-    await new Promise((res) => setTimeout(res, 1000));
-    toast({ title: "Competitor saved!", description: "Initial snapshot taken and fields stored." });
-    setSaving(false);
-    setHomepage("");
-    setFields({
-      pricing: "",
-      blog: "",
-      releaseNotes: "",
-      playstore: "",
-      appstore: "",
-      linkedin: "",
-      twitter: "",
-      custom: [""],
-    });
+    try {
+      if (!user || !user.id) {
+        toast({ title: "Error", description: "You must be logged in to save a competitor.", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+      if (!name.trim()) {
+        toast({ title: "Error", description: "Please enter a name for this competitor.", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+      if (!homepageContent) {
+        toast({ title: "Error", description: "Please scan the homepage before saving.", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+      // Prepare snapshot using stored homepageContent
+      const snapshot = {
+        date: new Date().toISOString(),
+        pages: [
+          { url: homepage, content: homepageContent }
+        ]
+      };
+      // Save to backend
+      const res = await fetch("http://localhost:8000/api/competitors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, name, homepage, fields, snapshot }),
+      });
+      if (res.status === 409) {
+        const err = await res.json();
+        toast({ title: "Error", description: err.error || "Competitor already exists.", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Unknown error");
+      }
+      toast({ title: "Competitor saved!", description: "Initial snapshot taken and fields stored." });
+      localStorage.setItem("competitorAdded", "1");
+      window.location.reload();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to save competitor", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const urlTypes = [
@@ -199,6 +243,8 @@ const AddCompetitor = () => {
                     <CardTitle>Edit & Confirm Fields</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    <Label>Competitor Name</Label>
+                    <Input value={name} onChange={e => setName(e.target.value)} placeholder="Competitor Name" />
                     <Label>Pricing Page</Label>
                     <Input value={fields.pricing} onChange={e => handleFieldChange("pricing", e.target.value)} />
                     <Label>Blog</Label>
