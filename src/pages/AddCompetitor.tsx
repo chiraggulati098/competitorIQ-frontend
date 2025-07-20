@@ -9,61 +9,141 @@ import { useState } from "react";
 import { Plus, Globe, DollarSign, MessageSquare, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+type Competitor = {
+  id: string;
+  name: string;
+  homepage: string;
+  fields: {
+    pricing?: string;
+    blog?: string;
+    releaseNotes?: string;
+    playstore?: string;
+    appstore?: string;
+    linkedin?: string;
+    twitter?: string;
+    custom?: string[];
+  };
+  snapshots: Snapshot[];
+};
+
+type Snapshot = {
+  id: string;
+  date: string;
+  pages: { url: string; content: string }[];
+  diffSummary?: string;
+};
+
 const AddCompetitor = () => {
-  const [competitors, setCompetitors] = useState([{ url: "", description: "" }]);
-  const [email, setEmail] = useState("");
-  const [slackWebhook, setSlackWebhook] = useState("");
+  // State for homepage input
+  const [homepage, setHomepage] = useState("");
+  // State for loading during crawl
+  const [loading, setLoading] = useState(false);
+  // State for extracted fields
+  const [fields, setFields] = useState({
+    pricing: "",
+    blog: "",
+    releaseNotes: "",
+    playstore: "",
+    appstore: "",
+    linkedin: "",
+    twitter: "",
+    custom: [""],
+  });
+  // State for saving
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  const addCompetitorField = () => {
-    setCompetitors([...competitors, { url: "", description: "" }]);
-  };
-
-  const updateCompetitor = (index: number, field: "url" | "description", value: string) => {
-    const updated = [...competitors];
-    updated[index][field] = value;
-    setCompetitors(updated);
-  };
-
-  const removeCompetitor = (index: number) => {
-    if (competitors.length > 1) {
-      setCompetitors(competitors.filter((_, i) => i !== index));
+  // Real crawl function using backend API
+  const crawlAndExtractFields = async (homepageUrl: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:8000/api/competitors/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ homepage: homepageUrl }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Unknown error");
+      }
+      const data = await res.json();
+      setFields({
+        pricing: data.pricing || "",
+        blog: data.blog || "",
+        releaseNotes: data.releaseNotes || "",
+        playstore: data.playstore || "",
+        appstore: data.appstore || "",
+        linkedin: data.linkedin || "",
+        twitter: data.twitter || "",
+        custom: data.custom || [""]
+      });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to extract fields", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle homepage submit
+  const handleHomepageSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Basic validation
-    const validCompetitors = competitors.filter(c => c.url.trim());
-    if (validCompetitors.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please add at least one competitor URL",
-        variant: "destructive"
-      });
+    if (!homepage.trim()) {
+      toast({ title: "Error", description: "Please enter a homepage URL", variant: "destructive" });
       return;
     }
+    await crawlAndExtractFields(homepage.trim());
+  };
 
-    if (!email && !slackWebhook) {
-      toast({
-        title: "Error", 
-        description: "Please provide either email or Slack webhook for notifications",
-        variant: "destructive"
-      });
-      return;
-    }
+  // Handle field change
+  const handleFieldChange = (field: string, value: string) => {
+    setFields((prev) => ({ ...prev, [field]: value }));
+  };
 
-    // Simulate successful submission
-    toast({
-      title: "Success!",
-      description: "Your competitor tracking has been set up. You'll receive your first summary within 24 hours.",
+  // Handle custom field change
+  const handleCustomChange = (idx: number, value: string) => {
+    setFields((prev) => {
+      const custom = [...(prev.custom || [])];
+      custom[idx] = value;
+      return { ...prev, custom };
     });
+  };
 
-    // Reset form
-    setCompetitors([{ url: "", description: "" }]);
-    setEmail("");
-    setSlackWebhook("");
+  // Add custom field (max 5)
+  const addCustomField = () => {
+    setFields((prev) => {
+      const custom = prev.custom || [];
+      if (custom.length >= 5) return prev;
+      return { ...prev, custom: [...custom, ""] };
+    });
+  };
+
+  // Remove custom field
+  const removeCustomField = (idx: number) => {
+    setFields((prev) => {
+      const custom = [...(prev.custom || [])];
+      custom.splice(idx, 1);
+      return { ...prev, custom };
+    });
+  };
+
+  // Save competitor
+  const handleSave = async () => {
+    setSaving(true);
+    // Simulate save
+    await new Promise((res) => setTimeout(res, 1000));
+    toast({ title: "Competitor saved!", description: "Initial snapshot taken and fields stored." });
+    setSaving(false);
+    setHomepage("");
+    setFields({
+      pricing: "",
+      blog: "",
+      releaseNotes: "",
+      playstore: "",
+      appstore: "",
+      linkedin: "",
+      twitter: "",
+      custom: [""],
+    });
   };
 
   const urlTypes = [
@@ -80,10 +160,10 @@ const AddCompetitor = () => {
       <section className="py-16 bg-gradient-hero">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Start Tracking <span className="bg-gradient-primary bg-clip-text text-transparent">Competitors</span>
+            Add a <span className="bg-gradient-primary bg-clip-text text-transparent">Competitor</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Add your competitors' URLs and get AI-powered insights delivered to your workflow.
+            Enter a homepage URL. We’ll auto-extract as much as we can!
           </p>
         </div>
       </section>
@@ -91,126 +171,70 @@ const AddCompetitor = () => {
       {/* Form section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
-            <form onSubmit={handleSubmit} className="space-y-8">
-              
-              {/* URL Types Info */}
+          <div className="max-w-2xl mx-auto">
+            {/* Homepage input form */}
+            <form onSubmit={handleHomepageSubmit} className="space-y-6">
               <Card className="bg-gradient-card border-border/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-primary" />
-                    What can you track?
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    {urlTypes.map((type, index) => (
-                      <div key={index} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                        <type.icon className="h-5 w-5 text-primary mt-0.5" />
-                        <div>
-                          <div className="font-medium text-sm">{type.label}</div>
-                          <div className="text-xs text-muted-foreground">{type.example}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Competitor URLs */}
-              <Card className="bg-gradient-card border-border/50">
-                <CardHeader>
-                  <CardTitle>Competitor URLs</CardTitle>
+                  <CardTitle>Homepage URL</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {competitors.map((competitor, index) => (
-                    <div key={index} className="space-y-3 p-4 bg-muted/30 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor={`url-${index}`}>Competitor #{index + 1}</Label>
-                        {competitors.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeCompetitor(index)}
-                          >
-                            Remove
-                          </Button>
-                        )}
-                      </div>
-                      <Input
-                        id={`url-${index}`}
-                        placeholder="https://competitor.com"
-                        value={competitor.url}
-                        onChange={(e) => updateCompetitor(index, "url", e.target.value)}
-                      />
-                      <Textarea
-                        placeholder="Optional: What should we focus on for this competitor?"
-                        value={competitor.description}
-                        onChange={(e) => updateCompetitor(index, "description", e.target.value)}
-                        className="min-h-[80px]"
-                      />
-                    </div>
-                  ))}
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addCompetitorField}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Another Competitor
+                  <Input
+                    placeholder="https://competitor.com"
+                    value={homepage}
+                    onChange={(e) => setHomepage(e.target.value)}
+                    disabled={loading}
+                  />
+                  <Button type="submit" disabled={loading || !homepage.trim()} className="w-full">
+                    {loading ? "Scanning..." : "Scan & Extract Fields"}
                   </Button>
                 </CardContent>
               </Card>
-
-              {/* Notification Settings */}
-              <Card className="bg-gradient-card border-border/50">
-                <CardHeader>
-                  <CardTitle>How should we notify you?</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="text-center text-muted-foreground">or</div>
-                  
-                  <div>
-                    <Label htmlFor="slack">Slack Webhook URL</Label>
-                    <Input
-                      id="slack"
-                      placeholder="https://hooks.slack.com/services/..."
-                      value={slackWebhook}
-                      onChange={(e) => setSlackWebhook(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      <a href="#" className="text-primary hover:underline">
-                        How to get your Slack webhook URL
-                      </a>
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Submit Button */}
-              <div className="text-center">
-                <Button type="submit" variant="hero" size="xl" className="w-full sm:w-auto">
-                  Start Tracking Competitors
-                </Button>
-                <p className="text-sm text-muted-foreground mt-3">
-                  You'll receive your first summary within 24 hours
-                </p>
-              </div>
             </form>
+            {/* Show extracted fields if not loading and at least one field is filled */}
+            {!loading && (fields.pricing || fields.blog || fields.releaseNotes || fields.playstore || fields.appstore || fields.linkedin || fields.twitter || (fields.custom && fields.custom.some(f => f))) && (
+              <form className="space-y-6 mt-8" onSubmit={e => { e.preventDefault(); handleSave(); }}>
+                <Card className="bg-gradient-card border-border/50">
+                  <CardHeader>
+                    <CardTitle>Edit & Confirm Fields</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Label>Pricing Page</Label>
+                    <Input value={fields.pricing} onChange={e => handleFieldChange("pricing", e.target.value)} />
+                    <Label>Blog</Label>
+                    <Input value={fields.blog} onChange={e => handleFieldChange("blog", e.target.value)} />
+                    <Label>Release Notes</Label>
+                    <Input value={fields.releaseNotes} onChange={e => handleFieldChange("releaseNotes", e.target.value)} />
+                    <Label>Playstore</Label>
+                    <Input value={fields.playstore} onChange={e => handleFieldChange("playstore", e.target.value)} />
+                    <Label>Appstore</Label>
+                    <Input value={fields.appstore} onChange={e => handleFieldChange("appstore", e.target.value)} />
+                    <Label>LinkedIn</Label>
+                    <Input value={fields.linkedin} onChange={e => handleFieldChange("linkedin", e.target.value)} />
+                    <Label>Twitter</Label>
+                    <Input value={fields.twitter} onChange={e => handleFieldChange("twitter", e.target.value)} />
+                    <Label>Custom Fields (up to 5)</Label>
+                    {fields.custom && fields.custom.map((val, idx) => (
+                      <div key={idx} className="flex gap-2 mb-2 items-center">
+                        <Input value={val} onChange={e => handleCustomChange(idx, e.target.value)} />
+                        {fields.custom.length > 1 && (
+                          <Button type="button" variant="destructive" size="icon" onClick={() => removeCustomField(idx)} title="Remove">
+                            &times;
+                          </Button>
+                        )}
+                        {idx === fields.custom.length - 1 && fields.custom.length < 5 && (
+                          <Button type="button" variant="outline" onClick={addCustomField}>+</Button>
+                        )}
+                      </div>
+                    ))}
+                    {(!fields.custom || fields.custom.length === 0) && (
+                      <Button type="button" variant="outline" onClick={addCustomField}>Add Custom Field</Button>
+                    )}
+                  </CardContent>
+                </Card>
+                <Button type="submit" className="w-full" disabled={saving}>{saving ? "Saving..." : "Save Competitor"}</Button>
+              </form>
+            )}
           </div>
         </div>
       </section>
