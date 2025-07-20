@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Brain, Heart } from "lucide-react";
+import logo from "@/assets/logo.svg";
 
 export const Footer = () => {
   const footerLinks = [
@@ -15,9 +16,7 @@ export const Footer = () => {
           {/* Logo and description */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center space-x-2">
-              <div className="p-2 rounded-lg bg-gradient-primary">
-                <Brain className="h-5 w-5 text-white" />
-              </div>
+              <img src={logo} alt="CompetitorIQ Logo" className="h-8 w-8" />
               <span className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
                 CompetitorIQ
               </span>

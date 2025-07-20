@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Brain, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth, SignInButton, UserButton, useSignIn } from "@clerk/clerk-react";
+import logo from "@/assets/logo.svg";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -58,9 +59,7 @@ export const Navigation = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2 group">
-            <div className="p-2 rounded-lg bg-gradient-primary">
-              <Brain className="h-6 w-6 text-white" />
-            </div>
+            <img src={logo} alt="CompetitorIQ Logo" className="h-10 w-10" />
             <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
               CompetitorIQ
             </span>

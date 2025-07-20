@@ -57,7 +57,7 @@ export const HeroSection = () => {
 
           {/* Trust indicators */}
           <div className="mt-12 text-sm text-muted-foreground">
-            <p>Trusted by 500+ Product Managers worldwide</p>
+            <p>Trusted by Product Managers worldwide</p>
           </div>
         </div>
       </div>
