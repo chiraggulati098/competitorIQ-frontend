@@ -180,6 +180,9 @@ const AddCompetitor = () => {
         const err = await res.json();
         throw new Error(err.error || "Unknown error");
       }
+      // Trigger snapshot in background
+      const { id: competitorId } = await res.json();
+      fetch(`http://localhost:8000/api/competitors/${competitorId}/snapshot`, { method: "POST" });
       toast({ title: "Competitor saved!", description: "Initial snapshot taken and fields stored." });
       localStorage.setItem("competitorAdded", "1");
       window.location.reload();
