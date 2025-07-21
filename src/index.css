@@ -170,3 +170,18 @@ All colors MUST be HSL.
     background-color: hsl(262 83% 58% / 0.1) !important;
     border-radius: 999px;
 }
+
+/* Custom dark scrollbar for dialogs and app */
+::-webkit-scrollbar {
+  width: 8px;
+  background: #18181b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}

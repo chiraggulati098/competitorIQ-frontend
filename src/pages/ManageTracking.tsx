@@ -43,10 +43,33 @@ const freqOptions = [
   { value: "monthly", label: "Monthly" }
 ];
 
+type EditLinks = {
+  homepage: string;
+  pricing: string;
+  blog: string;
+  releaseNotes: string;
+  playstore: string;
+  appstore: string;
+  linkedin: string;
+  twitter: string;
+  custom: string[];
+};
+
 export default function ManageTracking() {
-  const [tracked, setTracked] = useState(initialTracked);
+  const [tracked, setTracked] = useState([]); 
   const [editIdx, setEditIdx] = useState<number | null>(null);
-  const [editLinks, setEditLinks] = useState({ twitter: "", linkedin: "", custom: [""] });
+  const [editName, setEditName] = useState("");
+  const [editLinks, setEditLinks] = useState<EditLinks>({
+    homepage: "",
+    pricing: "",
+    blog: "",
+    releaseNotes: "",
+    playstore: "",
+    appstore: "",
+    linkedin: "",
+    twitter: "",
+    custom: [""]
+  });
   const [showDialog, setShowDialog] = useState(false);
   const [updateFreq, setUpdateFreq] = useState("daily"); // global frequency
   const [receiveEmail, setReceiveEmail] = useState(true);
@@ -58,6 +81,7 @@ export default function ManageTracking() {
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
+    // Fetch user preferences
     fetch(`http://localhost:8000/api/user/preferences?userId=${userId}`)
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to fetch preferences");
@@ -71,6 +95,33 @@ export default function ManageTracking() {
       })
       .catch(() => {
         toast({ title: "Error", description: "Failed to load preferences", variant: "destructive" });
+      });
+    // Fetch competitors
+    fetch(`http://localhost:8000/api/competitors/list?userId=${userId}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Failed to fetch competitors");
+        const data = await res.json();
+        // Map API fields to tracked state
+        setTracked(
+          (data.competitors || []).map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            links: {
+              homepage: c.homepage || "",
+              pricing: c.fields.pricing || "",
+              blog: c.fields.blog || "",
+              releaseNotes: c.fields.releaseNotes || "",
+              playstore: c.fields.playstore || "",
+              appstore: c.fields.appstore || "",
+              linkedin: c.fields.linkedin || "",
+              twitter: c.fields.twitter || "",
+              custom: c.fields.custom || [],
+            },
+          }))
+        );
+      })
+      .catch(() => {
+        toast({ title: "Error", description: "Failed to load competitors", variant: "destructive" });
       })
       .finally(() => setLoading(false));
   }, [userId]);
@@ -97,19 +148,56 @@ export default function ManageTracking() {
       .finally(() => setSaving(false));
   };
 
+  const linkFields = [
+    { key: "homepage", label: "Homepage" },
+    { key: "pricing", label: "Pricing" },
+    { key: "blog", label: "Blog" },
+    { key: "releaseNotes", label: "Release Notes" },
+    { key: "playstore", label: "Play Store" },
+    { key: "appstore", label: "App Store" },
+    { key: "linkedin", label: "LinkedIn" },
+    { key: "twitter", label: "Twitter" },
+  ];
+
   // Open edit dialog
   const handleEdit = (idx: number) => {
     setEditIdx(idx);
-    setEditLinks({ ...tracked[idx].links, custom: [...tracked[idx].links.custom] });
+    setEditName(tracked[idx].name || "");
+    const links = tracked[idx].links;
+    setEditLinks({
+      homepage: links.homepage || "",
+      pricing: links.pricing || "",
+      blog: links.blog || "",
+      releaseNotes: links.releaseNotes || "",
+      playstore: links.playstore || "",
+      appstore: links.appstore || "",
+      linkedin: links.linkedin || "",
+      twitter: links.twitter || "",
+      custom: links.custom && Array.isArray(links.custom) ? links.custom.slice(0, 5) : [""]
+    });
     setShowDialog(true);
   };
 
-  // Save edited links
+  // Save edited links and name
   const handleSaveLinks = () => {
     if (editIdx === null) return;
     setTracked((prev) => {
       const updated = [...prev];
-      updated[editIdx] = { ...updated[editIdx], links: { ...editLinks, custom: editLinks.custom.filter(Boolean) } };
+      updated[editIdx] = {
+        ...updated[editIdx],
+        name: editName,
+        links: {
+          homepage: editLinks.homepage || "",
+          pricing: editLinks.pricing || "",
+          blog: editLinks.blog || "",
+          releaseNotes: editLinks.releaseNotes || "",
+          playstore: editLinks.playstore || "",
+          appstore: editLinks.appstore || "",
+          linkedin: editLinks.linkedin || "",
+          twitter: editLinks.twitter || "",
+          custom: (editLinks.custom || []).filter(Boolean).slice(0, 5),
+        },
+      };
       return updated;
     });
     setShowDialog(false);
@@ -129,14 +217,21 @@ export default function ManageTracking() {
     });
   };
 
-  // Add custom link field
+  // Add custom link field (max 5)
   const addCustomLink = () => {
-    setEditLinks((prev) => ({ ...prev, custom: [...prev.custom, ""] }));
+    setEditLinks((prev) => {
+      const custom = prev.custom || [];
+      if (custom.length >= 5) return prev;
+      return { ...prev, custom: [...custom, ""] };
+    });
   };
 
   // Remove custom link field
   const removeCustomLink = (i: number) => {
-    setEditLinks((prev) => ({ ...prev, custom: prev.custom.filter((_, idx) => idx !== i) }));
+    setEditLinks((prev) => {
+      const custom = prev.custom || [];
+      return { ...prev, custom: custom.filter((_, idx) => idx !== i) };
+    });
   };
 
   return (
@@ -185,7 +280,12 @@ export default function ManageTracking() {
             {tracked.map((item, idx) => (
               <Card key={item.id} className="border-border/50">
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>{item.name}</CardTitle>
+                  <CardTitle>
+                    <span className="inline-flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
+                      {item.name}
+                    </span>
+                  </CardTitle>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" onClick={() => handleEdit(idx)}>Edit</Button>
                     <Button size="sm" variant="destructive" onClick={() => handleRemove(idx)}>Remove</Button>
@@ -195,9 +295,23 @@ export default function ManageTracking() {
                   <div className="mb-2">
                     <span className="font-semibold">Links:</span>
                     <ul className="ml-4 mt-1 space-y-1 text-muted-foreground text-sm">
-                      {item.links.twitter && <li>Twitter: <a href={item.links.twitter} className="underline" target="_blank" rel="noopener noreferrer">{item.links.twitter}</a></li>}
-                      {item.links.linkedin && <li>LinkedIn: <a href={item.links.linkedin} className="underline" target="_blank" rel="noopener noreferrer">{item.links.linkedin}</a></li>}
-                      {item.links.custom.map((link, i) => link && <li key={i}>Custom: <a href={link} className="underline" target="_blank" rel="noopener noreferrer">{link}</a></li>)}
+                      {/* Always show homepage */}
+                      <li>
+                        Homepage: <a href={item.links.homepage} className="underline" target="_blank" rel="noopener noreferrer">{item.links.homepage}</a>
+                      </li>
+                      {/* Show only non-empty other links */}
+                      {linkFields.filter(f => f.key !== "homepage").map(f => (
+                        item.links && item.links[f.key] ? (
+                          <li key={f.key}>
+                            {f.label}: <a href={item.links[f.key]} className="underline" target="_blank" rel="noopener noreferrer">{item.links[f.key]}</a>
+                          </li>
+                        ) : null
+                      ))}
+                      {(item.links.custom || []).map((link, i) => (
+                        link ? (
+                          <li key={"custom-" + i}>Custom {i + 1}: <a href={link} className="underline" target="_blank" rel="noopener noreferrer">{link}</a></li>
+                        ) : null
+                      ))}
                     </ul>
                   </div>
                 </CardContent>
@@ -215,26 +329,30 @@ export default function ManageTracking() {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Links</DialogTitle>
+            <DialogTitle>Edit Competitor</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto max-h-[70vh] pr-2">
             <div>
-              <label className="block text-sm font-medium mb-1">Twitter</label>
-              <Input value={editLinks.twitter} onChange={e => setEditLinks(l => ({ ...l, twitter: e.target.value }))} placeholder="Twitter URL" />
+              <label className="block text-sm font-medium mb-1">Name</label>
+              <Input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Competitor Name" />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">LinkedIn</label>
-              <Input value={editLinks.linkedin} onChange={e => setEditLinks(l => ({ ...l, linkedin: e.target.value }))} placeholder="LinkedIn URL" />
-            </div>
+            {linkFields.map(f => (
+              <div key={f.key}>
+                <label className="block text-sm font-medium mb-1">{f.label}</label>
+                <Input value={editLinks[f.key] || ""} onChange={e => setEditLinks(l => ({ ...l, [f.key]: e.target.value }))} placeholder={`${f.label} URL`} />
+              </div>
+            ))}
             <div>
               <label className="block text-sm font-medium mb-1">Custom Links</label>
-              {editLinks.custom.map((link, i) => (
+              {(editLinks.custom || []).map((link, i) => (
                 <div key={i} className="flex gap-2 mb-2">
-                  <Input value={link} onChange={e => setEditLinks(l => { const c = [...l.custom]; c[i] = e.target.value; return { ...l, custom: c }; })} placeholder="Custom URL" />
-                  <Button size="icon" variant="ghost" onClick={() => removeCustomLink(i)} disabled={editLinks.custom.length === 1}>-</Button>
+                  <Input value={link} onChange={e => setEditLinks(l => { const c = [...(l.custom || [])]; c[i] = e.target.value; return { ...l, custom: c }; })} placeholder="Custom URL" />
+                  <Button size="icon" variant="ghost" onClick={() => removeCustomLink(i)} disabled={(editLinks.custom || []).length === 1}>-</Button>
                 </div>
               ))}
-              <Button size="sm" variant="outline" onClick={addCustomLink}>Add Custom Link</Button>
+              {(editLinks.custom || []).length < 5 && (
+                <Button size="sm" variant="outline" onClick={addCustomLink}>Add Custom Link</Button>
+              )}
             </div>
           </div>
           <DialogFooter>
