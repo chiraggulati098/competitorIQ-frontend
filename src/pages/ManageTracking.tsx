@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog as ConfirmDialog, DialogContent as ConfirmDialogContent, DialogHeader as ConfirmDialogHeader, DialogTitle as ConfirmDialogTitle, DialogFooter as ConfirmDialogFooter } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
@@ -75,6 +76,8 @@ export default function ManageTracking() {
   const [receiveEmail, setReceiveEmail] = useState(true);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmDeleteIdx, setConfirmDeleteIdx] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
   const { userId } = useAuth();
 
@@ -234,9 +237,54 @@ export default function ManageTracking() {
     setShowDialog(false);
   };
 
-  // Remove tracked competitor
+  // Remove tracked competitor (with confirmation)
   const handleRemove = (idx: number) => {
-    setTracked((prev) => prev.filter((_, i) => i !== idx));
+    setConfirmDeleteIdx(idx);
+  };
+
+  const confirmDelete = async () => {
+    if (confirmDeleteIdx === null) return;
+    setDeleting(true);
+    const competitor = tracked[confirmDeleteIdx];
+    try {
+      const res = await fetch(`http://localhost:8000/api/competitors/${competitor.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete competitor");
+      toast({ title: "Competitor deleted!", variant: "default" });
+      // Refresh competitor list
+      if (userId) {
+        const resp = await fetch(`http://localhost:8000/api/competitors/list?userId=${userId}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          setTracked(
+            (data.competitors || []).map((c: any) => ({
+              id: c.id,
+              name: c.name,
+              links: {
+                homepage: c.homepage || "",
+                pricing: c.fields.pricing || "",
+                blog: c.fields.blog || "",
+                releaseNotes: c.fields.releaseNotes || "",
+                playstore: c.fields.playstore || "",
+                appstore: c.fields.appstore || "",
+                linkedin: c.fields.linkedin || "",
+                twitter: c.fields.twitter || "",
+                custom: c.fields.custom || [],
+              },
+            }))
+          );
+        }
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to delete competitor", variant: "destructive" });
+    }
+    setDeleting(false);
+    setConfirmDeleteIdx(null);
+  };
+
+  const cancelDelete = () => {
+    setConfirmDeleteIdx(null);
   };
 
   // Update frequency
@@ -319,7 +367,7 @@ export default function ManageTracking() {
                   </CardTitle>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" onClick={() => handleEdit(idx)}>Edit</Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleRemove(idx)}>Remove</Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleRemove(idx)} disabled={deleting}>Remove</Button>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -391,6 +439,19 @@ export default function ManageTracking() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog open={confirmDeleteIdx !== null} onOpenChange={cancelDelete}>
+        <ConfirmDialogContent>
+          <ConfirmDialogHeader>
+            <ConfirmDialogTitle>Delete Competitor</ConfirmDialogTitle>
+          </ConfirmDialogHeader>
+          <div>Are you sure you want to delete this competitor? This action cannot be undone.</div>
+          <ConfirmDialogFooter>
+            <Button variant="outline" onClick={cancelDelete} disabled={deleting}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleting}>{deleting ? "Deleting..." : "Delete"}</Button>
+          </ConfirmDialogFooter>
+        </ConfirmDialogContent>
+      </ConfirmDialog>
       <Footer />
     </div>
   );
