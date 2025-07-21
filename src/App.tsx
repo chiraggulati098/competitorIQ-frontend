@@ -15,6 +15,7 @@ import TrackChanges from "./pages/Summaries";
 import AddCompetitor from "./pages/AddCompetitor";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ManageTracking from "./pages/ManageTracking";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
               <AddCompetitor />
             </ProtectedRoute>
           } />
+          <Route path="/manage-tracking" element={<ManageTracking />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

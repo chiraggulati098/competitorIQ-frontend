@@ -114,6 +114,11 @@ const TrackChanges = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <div className="container mx-auto px-4 max-w-4xl mt-6 flex justify-end">
+        <Button asChild variant="outline">
+          <Link to="/manage-tracking">Manage Tracking</Link>
+        </Button>
+      </div>
       {/* Hero section */}
       <section className="py-24 bg-gradient-hero">
         <div className="container mx-auto px-4 text-center">
