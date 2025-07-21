@@ -58,7 +58,6 @@ const AddCompetitor = () => {
   const [homepageContent, setHomepageContent] = useState("");
   const [scanned, setScanned] = useState(false);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-  console.log(BACKEND_URL);
 
   useEffect(() => {
     if (localStorage.getItem("competitorAdded") === "1") {
