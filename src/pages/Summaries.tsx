@@ -62,12 +62,14 @@ const TrackChanges = () => {
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [hideNoChanges, setHideNoChanges] = useState(false);
 
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
   useEffect(() => {
     if (!userId) return;
 
     setLoading(true);
     setError(null);
-    fetch(`http://localhost:8000/api/competitors/summaries?userId=${userId}`)
+    fetch(`${BACKEND_URL}/api/competitors/summaries?userId=${userId}`)
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to fetch summaries");
         const data = await res.json();

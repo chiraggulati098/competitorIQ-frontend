@@ -57,6 +57,8 @@ const AddCompetitor = () => {
   const [name, setName] = useState("");
   const [homepageContent, setHomepageContent] = useState("");
   const [scanned, setScanned] = useState(false);
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  console.log(BACKEND_URL);
 
   useEffect(() => {
     if (localStorage.getItem("competitorAdded") === "1") {
@@ -69,7 +71,7 @@ const AddCompetitor = () => {
   const crawlAndExtractFields = async (homepageUrl: string) => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/competitors/scan", {
+      const res = await fetch(`${BACKEND_URL}/api/competitors/scan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ homepage: homepageUrl }),
@@ -178,7 +180,7 @@ const AddCompetitor = () => {
         ]
       };
       // Save to backend
-      const res = await fetch("http://localhost:8000/api/competitors", {
+      const res = await fetch(`${BACKEND_URL}/api/competitors`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, name, homepage, fields, snapshot }),
@@ -195,7 +197,7 @@ const AddCompetitor = () => {
       }
       // Trigger snapshot in background
       const { id: competitorId } = await res.json();
-      fetch(`http://localhost:8000/api/competitors/${competitorId}/snapshot`, { method: "POST" });
+      fetch(`${BACKEND_URL}/api/competitors/${competitorId}/snapshot`, { method: "POST" });
       toast({ title: "Competitor saved!", description: "Initial snapshot taken and fields stored." });
       localStorage.setItem("competitorAdded", "1");
       window.location.reload();

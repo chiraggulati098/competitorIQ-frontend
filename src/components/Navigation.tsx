@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useAuth, SignInButton, UserButton, useSignIn } from "@clerk/clerk-react";
 import logo from "@/assets/logo.svg";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -31,7 +33,7 @@ export const Navigation = () => {
         const token = await getToken();
         if (token) {
           try {
-            await fetch("http://localhost:8000/login", {
+            await fetch(`${BACKEND_URL}/login`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

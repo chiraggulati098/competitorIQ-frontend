@@ -80,12 +80,13 @@ export default function ManageTracking() {
   const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
   const { userId } = useAuth();
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
     // Fetch user preferences
-    fetch(`http://localhost:8000/api/user/preferences?userId=${userId}`)
+    fetch(`${BACKEND_URL}/api/user/preferences?userId=${userId}`)
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to fetch preferences");
         const data = await res.json();
@@ -100,7 +101,7 @@ export default function ManageTracking() {
         toast({ title: "Error", description: "Failed to load preferences", variant: "destructive" });
       });
     // Fetch competitors
-    fetch(`http://localhost:8000/api/competitors/list?userId=${userId}`)
+    fetch(`${BACKEND_URL}/api/competitors/list?userId=${userId}`)
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to fetch competitors");
         const data = await res.json();
@@ -133,7 +134,7 @@ export default function ManageTracking() {
   const handleSavePreferences = () => {
     if (!userId) return;
     setSaving(true);
-    fetch("http://localhost:8000/api/user/preferences", {
+    fetch(`${BACKEND_URL}/api/user/preferences`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -200,7 +201,7 @@ export default function ManageTracking() {
       },
     };
     try {
-      const res = await fetch(`http://localhost:8000/api/competitors/${competitor.id}`, {
+      const res = await fetch(`${BACKEND_URL}/api/competitors/${competitor.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updated),
@@ -209,7 +210,7 @@ export default function ManageTracking() {
       toast({ title: "Competitor updated!", variant: "default" });
       // Refresh competitor list
       if (userId) {
-        const resp = await fetch(`http://localhost:8000/api/competitors/list?userId=${userId}`);
+        const resp = await fetch(`${BACKEND_URL}/api/competitors/list?userId=${userId}`);
         if (resp.ok) {
           const data = await resp.json();
           setTracked(
@@ -247,14 +248,14 @@ export default function ManageTracking() {
     setDeleting(true);
     const competitor = tracked[confirmDeleteIdx];
     try {
-      const res = await fetch(`http://localhost:8000/api/competitors/${competitor.id}`, {
+      const res = await fetch(`${BACKEND_URL}/api/competitors/${competitor.id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete competitor");
       toast({ title: "Competitor deleted!", variant: "default" });
       // Refresh competitor list
       if (userId) {
-        const resp = await fetch(`http://localhost:8000/api/competitors/list?userId=${userId}`);
+        const resp = await fetch(`${BACKEND_URL}/api/competitors/list?userId=${userId}`);
         if (resp.ok) {
           const data = await resp.json();
           setTracked(
