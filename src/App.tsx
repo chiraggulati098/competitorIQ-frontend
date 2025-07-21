@@ -38,7 +38,11 @@ const App = () => (
               <AddCompetitor />
             </ProtectedRoute>
           } />
-          <Route path="/manage-tracking" element={<ManageTracking />} />
+          <Route path="/manage-tracking" element={
+            <ProtectedRoute>
+              <ManageTracking />
+            </ProtectedRoute>
+          } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

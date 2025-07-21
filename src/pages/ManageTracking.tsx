@@ -179,27 +179,58 @@ export default function ManageTracking() {
   };
 
   // Save edited links and name
-  const handleSaveLinks = () => {
+  const handleSaveLinks = async () => {
     if (editIdx === null) return;
-    setTracked((prev) => {
-      const updated = [...prev];
-      updated[editIdx] = {
-        ...updated[editIdx],
-        name: editName,
-        links: {
-          homepage: editLinks.homepage || "",
-          pricing: editLinks.pricing || "",
-          blog: editLinks.blog || "",
-          releaseNotes: editLinks.releaseNotes || "",
-          playstore: editLinks.playstore || "",
-          appstore: editLinks.appstore || "",
-          linkedin: editLinks.linkedin || "",
-          twitter: editLinks.twitter || "",
-          custom: (editLinks.custom || []).filter(Boolean).slice(0, 5),
-        },
-      };
-      return updated;
-    });
+    const competitor = tracked[editIdx];
+    const updated = {
+      name: editName,
+      fields: {
+        homepage: editLinks.homepage || "",
+        pricing: editLinks.pricing || "",
+        blog: editLinks.blog || "",
+        releaseNotes: editLinks.releaseNotes || "",
+        playstore: editLinks.playstore || "",
+        appstore: editLinks.appstore || "",
+        linkedin: editLinks.linkedin || "",
+        twitter: editLinks.twitter || "",
+        custom: (editLinks.custom || []).filter(Boolean).slice(0, 5),
+      },
+    };
+    try {
+      const res = await fetch(`http://localhost:8000/api/competitors/${competitor.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
+      if (!res.ok) throw new Error("Failed to update competitor");
+      toast({ title: "Competitor updated!", variant: "default" });
+      // Refresh competitor list
+      if (userId) {
+        const resp = await fetch(`http://localhost:8000/api/competitors/list?userId=${userId}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          setTracked(
+            (data.competitors || []).map((c: any) => ({
+              id: c.id,
+              name: c.name,
+              links: {
+                homepage: c.homepage || "",
+                pricing: c.fields.pricing || "",
+                blog: c.fields.blog || "",
+                releaseNotes: c.fields.releaseNotes || "",
+                playstore: c.fields.playstore || "",
+                appstore: c.fields.appstore || "",
+                linkedin: c.fields.linkedin || "",
+                twitter: c.fields.twitter || "",
+                custom: c.fields.custom || [],
+              },
+            }))
+          );
+        }
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to update competitor", variant: "destructive" });
+    }
     setShowDialog(false);
   };
 
