@@ -60,10 +60,10 @@ export const Footer = () => {
                 How It Works
               </Link>
               <Link
-                to="/summaries"
+                to="/track-changes"
                 className="block text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                View Summaries
+                View Track Changes
               </Link>
             </div>
           </div>

@@ -38,7 +38,7 @@ export const HeroSection = () => {
 
           {/* Subtext */}
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            Get AI-generated summaries of competitor feature updates, pricing shifts, 
+            Track AI-generated changes of competitor feature updates, pricing shifts, 
             and UI changes — delivered straight to Slack or Email.
           </p>
 

@@ -120,3 +120,53 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Polished calendar day selection for a seamless, pill-shaped range */
+.rdp-day_range_start,
+.rdp-day_range_end {
+  background: hsl(262 83% 58%) !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+  z-index: 2;
+}
+.rdp-day_range_middle {
+  background: hsl(262 83% 58% / 0.18) !important;
+  color: #fff !important;
+  border-radius: 0 !important;
+  position: relative;
+  z-index: 1;
+}
+.rdp-day_range_start::after,
+.rdp-day_range_end::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  background: hsl(262 83% 58% / 0.18);
+  z-index: -1;
+}
+.rdp-day_range_start::after {
+  left: 50%;
+}
+.rdp-day_range_end::after {
+  right: 50%;
+}
+.rdp-day_today:not([class*="rdp-day_range"]) {
+  border: 1.5px solid hsl(262 83% 58%);
+  background: transparent;
+  color: hsl(262 83% 58%);
+  border-radius: 999px;
+}
+.rdp-day_selected,
+.rdp-day_selected:focus,
+.rdp-day_selected:hover {
+  background: hsl(262 83% 58%) !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+  box-shadow: 0 0 0 2px hsl(262 83% 58% / 0.3);
+}
+.rdp-day:hover:not([class*="rdp-day_range"]):not(.rdp-day_selected) {
+    background-color: hsl(262 83% 58% / 0.1) !important;
+    border-radius: 999px;
+}

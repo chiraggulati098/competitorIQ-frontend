@@ -21,7 +21,7 @@ export const BenefitsSection = () => {
     {
       icon: Brain,
       title: "AI-written updates, not noise",
-      description: "Receive intelligent summaries that focus on what matters, not overwhelming raw data dumps.",
+      description: "Track intelligent changes that focus on what matters, not overwhelming raw data dumps.",
     },
   ];
 

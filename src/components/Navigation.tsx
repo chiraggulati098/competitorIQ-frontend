@@ -49,7 +49,7 @@ export const Navigation = () => {
   const navItems = [
     { label: "Home", path: "/" },
     { label: "How It Works", path: "/how-it-works" },
-    { label: "Summaries", path: "/summaries" },
+    { label: "Track Changes", path: "/track-changes" },
   ];
 
   const isActive = (path: string) => location.pathname === path;

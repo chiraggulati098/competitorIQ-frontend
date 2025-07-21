@@ -15,7 +15,7 @@ export const HowItWorksSection = () => {
     },
     {
       icon: Mail,
-      title: "You get weekly summaries",
+      title: "You get weekly tracked changes",
       description: "Receive concise, AI-written reports delivered directly to your Slack workspace or email inbox.",
     },
   ];

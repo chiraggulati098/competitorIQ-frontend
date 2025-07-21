@@ -11,7 +11,7 @@ import {
 } from "@clerk/clerk-react";
 import Index from "./pages/Index";
 import HowItWorks from "./pages/HowItWorks";
-import Summaries from "./pages/Summaries";
+import TrackChanges from "./pages/Summaries";
 import AddCompetitor from "./pages/AddCompetitor";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -27,9 +27,9 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/summaries" element={
+          <Route path="/track-changes" element={
             <ProtectedRoute>
-              <Summaries />
+              <TrackChanges />
             </ProtectedRoute>
           } />
           <Route path="/add" element={
