@@ -1,73 +1,89 @@
-# Welcome to your Lovable project
+# CompetitorIQ Insights AI
 
-## Project info
+A modern web application that helps product managers and businesses track competitor changes using AI-powered intelligence. Get notified about feature updates, pricing shifts, and UI changes from your competitors before they impact your business.
 
-**URL**: https://lovable.dev/projects/773ace28-dbc0-4b53-929a-0f2f10f4893f
+## Features
 
-## How can I edit this code?
+- **AI-Powered Competitor Tracking**: Automatically scan and monitor competitor websites for changes
+- **Smart Field Extraction**: Automatically detect pricing pages, blogs, release notes, and social media links
+- **Change Summaries**: Get AI-generated summaries of detected changes with impact assessment
+- **Real-time Notifications**: Receive updates via Email when changes are detected
+- **User Authentication**: Secure user management with Clerk authentication
+- **Filtering & Search**: Filter changes by date, company, and impact level
 
-There are several ways of editing your application.
+## Prerequisites
 
-**Use Lovable**
+- Node.js 18+ and npm
+- Backend API server running [see backend repository](https://github.com/chiraggulati098/competitorIQ-service$0)
+- Environment variables configured
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/773ace28-dbc0-4b53-929a-0f2f10f4893f) and start prompting.
+## Quick Start
 
-Changes made via Lovable will be committed automatically to this repo.
+### 1. Clone the Repository
 
-**Use your preferred IDE**
+```bash
+git clone https://github.com/chiraggulati098/competitorIQ-frontend.git
+cd competitorIQ-frontend
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 2. Install Dependencies
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
+```bash
 npm i
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 3. Environment Setup
+
+Create a `.env` file in the root directory:
+
+```env
+VITE_BACKEND_URL=http://localhost:5000
+VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+```
+
+### 4. Start Development Server
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Project Structure
 
-**Use GitHub Codespaces**
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui components
+│   ├── HeroSection.tsx # Landing page hero
+│   ├── Navigation.tsx  # Main navigation
+│   └── ...
+├── pages/              # Page components
+│   ├── Index.tsx       # Landing page
+│   ├── AddCompetitor.tsx # Add new competitor
+│   ├── Summaries.tsx   # View change summaries
+│   └── ...
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions
+└── assets/             # Static assets
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Key Pages
 
-## What technologies are used for this project?
+- **Landing Page** (`/`): Marketing page with hero section, benefits, and how-it-works
+- **Add Competitor** (`/add`): Form to add and configure competitor tracking
+- **Track Changes** (`/track-changes`): Dashboard showing detected changes and summaries
+- **Manage Tracking** (`/manage-tracking`): Manage existing competitor configurations
+- **How It Works** (`/how-it-works`): Detailed explanation of the platform
 
-This project is built with:
+## API Integration
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+The frontend communicates with a Python backend API for:
+- Competitor scanning and field extraction
+- Change detection and summarization
+- User data management
+- Notification delivery
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/773ace28-dbc0-4b53-929a-0f2f10f4893f) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project was made by Chirag with ❤️
